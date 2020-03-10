@@ -2,12 +2,37 @@ from flask import Flask, render_template, request, redirect, url_for
 from flask_sqlalchemy import SQLAlchemy 
 from datetime import datetime
 
+import json
+from ldap3 import Server, Connection, ALL
+from ldap3.core.exceptions import *
+import cgitb
+import cgi
+import sys
+cgitb.enable()
+
+import settings 
+
 app = Flask(__name__)
 
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:////Users/rafaelhua/Dropbox/INFO3103/Project/blog.db'
 
 db = SQLAlchemy(app)
 
+
+# =====================================
+# Error handlers
+# =====================================
+@app.errorhandler(400) 
+def not_found(error):
+	return make_response(jsonify( { 'status': 'Bad request' } ), 400)
+
+@app.errorhandler(404) 
+def not_found(error):
+	return make_response(jsonify( { 'status': 'Resource not found' } ), 404)
+
+# =====================================
+# class Blogpost
+# =====================================
 class Blogpost(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     title = db.Column(db.String(50))
@@ -51,6 +76,9 @@ def addpost():
     db.session.commit()
 
     return redirect(url_for('index'))
+
+
+#############################################
 
 if __name__ == '__main__':
     app.run(debug=True)
